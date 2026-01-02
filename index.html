@@ -119,8 +119,9 @@
         .result-page h2 {
             text-align: center;
             color: #333;
-            font-size: 24px;
+            font-size: 28px; /* 原24px，放大4px */
             margin-bottom: 30px;
+            font-weight: 600;
         }
         .result-page .chart-wrap {
             width: 250px;
@@ -138,7 +139,7 @@
             width: 100px;
         }
         .chart-center-title {
-            font-size: 18px;
+            font-size: 21px; /* 原18px，放大3px */
             font-weight: 600;
             color: #333;
             margin-bottom: 5px;
@@ -165,6 +166,7 @@
             width: 80px;
             font-size: 16px;
             font-weight: 500;
+            /* 颜色将通过JS动态匹配进度条 */
         }
         .result-page .score-bar-wrap {
             flex: 1;
@@ -193,15 +195,15 @@
         }
         .result-page .result-title {
             font-size: 22px;
-            color: #333;
             margin-bottom: 15px;
             font-weight: 600;
+            /* 颜色将通过JS动态匹配核心爽点 */
         }
         .result-page .result-desc {
             line-height: 1.8;
-            color: #444;
             font-size: 16px;
             margin-bottom: 20px;
+            /* 颜色将通过JS动态匹配核心爽点 */
         }
         .result-page .result-tips {
             padding: 15px;
@@ -245,10 +247,13 @@
                 height: 200px;
             }
             .chart-center-title {
-                font-size: 16px;
+                font-size: 19px; /* 移动端同步放大3px后的适配 */
             }
             .chart-center-score {
                 font-size: 28px;
+            }
+            .result-page h2 {
+                font-size: 24px; /* 移动端标题放大4px后的适配 */
             }
         }
     </style>
@@ -749,6 +754,8 @@
             // 更新圆环中心文本
             chartCenterText.querySelector('.chart-center-title').textContent = maxPleasure.name;
             chartCenterScore.textContent = maxScore;
+            // 圆环中心标题颜色匹配核心爽点
+            chartCenterText.querySelector('.chart-center-title').style.color = maxPleasure.color;
 
             // 渲染分数列表
             scoreList.innerHTML = '';
@@ -765,6 +772,10 @@
                 `;
                 scoreList.appendChild(scoreItem);
 
+                // 动态设置标签颜色与进度条一致
+                const scoreLabel = scoreItem.querySelector('.score-label');
+                scoreLabel.style.color = type.color;
+
                 // 动画效果
                 setTimeout(() => {
                     scoreItem.querySelector('.score-bar').style.width = `${percent}%`;
@@ -777,6 +788,13 @@
                 <p class="result-desc">${maxPleasure.desc}</p>
                 <div class="result-tips"><strong>快乐小技巧：</strong>${maxPleasure.tips}</div>
             `;
+            // 动态设置核心爽点标题和介绍文字颜色
+            const resultTitle = resultCard.querySelector('.result-title');
+            const resultDesc = resultCard.querySelector('.result-desc');
+            resultTitle.style.color = maxPleasure.color;
+            resultDesc.style.color = maxPleasure.color;
+            // 小技巧左侧边框颜色匹配核心爽点
+            resultCard.querySelector('.result-tips').style.borderLeftColor = maxPleasure.color;
 
             // 渲染环形图
             const chartData = {
