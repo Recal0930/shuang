@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人生爽点探测器 | 趣味测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+            padding: 30px;
+            display: none;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .container.active {
+            display: block;
+        }
+        /* 开始页样式 */
+        .start-page h1 {
+            text-align: center;
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .start-page .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        .start-page .desc {
+            line-height: 1.8;
+            color: #444;
+            font-size: 15px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        .start-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        /* 测试页样式 */
+        .test-page .progress-wrap {
+            width: 100%;
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .test-page .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        .test-page .question-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .test-page .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .test-page .option {
+            padding: 18px;
+            border: 2px solid #f0f0f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            color: #444;
+        }
+        .test-page .option:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        .test-page .option:active {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-color: transparent;
+        }
+        /* 结果页样式 */
+        .result-page h2 {
+            text-align: center;
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+        .result-page .chart-wrap {
+            width: 250px;
+            height: 250px;
+            margin: 0 auto 40px;
+            position: relative;
+        }
+        /* 圆环中心文本容器 */
+        .chart-center-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 100px;
+        }
+        .chart-center-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .chart-center-score {
+            font-size: 32px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            line-height: 1;
+        }
+        .result-page .score-list {
+            margin-bottom: 30px;
+        }
+        .result-page .score-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .result-page .score-label {
+            width: 80px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .result-page .score-bar-wrap {
+            flex: 1;
+            height: 12px;
+            background: #f0f0f0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .result-page .score-bar {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 1s ease;
+        }
+        .result-page .score-value {
+            width: 40px;
+            text-align: right;
+            font-size: 14px;
+            color: #666;
+        }
+        .result-page .result-card {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 1px solid #e8eaf6;
+        }
+        .result-page .result-title {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .result-page .result-desc {
+            line-height: 1.8;
+            color: #444;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .result-page .result-tips {
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            line-height: 1.7;
+            color: #666;
+            font-size: 15px;
+        }
+        .result-page .restart-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: #fff;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 40px;
+            transition: all 0.3s ease;
+        }
+        .result-page .restart-btn:hover {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        /* 响应式适配 */
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            .start-page h1 {
+                font-size: 26px;
+            }
+            .test-page .question-title {
+                font-size: 18px;
+            }
+            .result-page .chart-wrap {
+                width: 200px;
+                height: 200px;
+            }
+            .chart-center-title {
+                font-size: 16px;
+            }
+            .chart-center-score {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 开始页 -->
+    <div class="container start-page active" id="startPage">
+        <h1>人生爽点探测器</h1>
+        <p class="subtitle">测一测，哪个瞬间能让你爽感拉满？</p>
+        <p class="desc">
+            每个人都有属于自己的「人生爽点」——可能是整理完房间的整洁感，<br>
+            可能是薅到羊毛的成就感，也可能是独自放空的自由感。<br>
+            完成30道深度测试题，精准找到你的专属爽点，解锁快乐小技巧～
+        </p>
+        <button class="start-btn" id="startBtn">开始测试</button>
+    </div>
+
+    <!-- 测试页 -->
+    <div class="container test-page" id="testPage">
+        <div class="progress-wrap">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="question-title" id="questionTitle"></div>
+        <div class="options" id="optionsContainer"></div>
+    </div>
+
+    <!-- 结果页 -->
+    <div class="container result-page" id="resultPage">
+        <h2>你的人生爽点报告</h2>
+        <div class="chart-wrap">
+            <!-- 圆环中心文本 -->
+            <div class="chart-center-text" id="chartCenterText">
+                <div class="chart-center-title">核心爽点</div>
+                <div class="chart-center-score" id="chartCenterScore">0</div>
+            </div>
+            <canvas id="resultChart"></canvas>
+        </div>
+        <div class="score-list" id="scoreList"></div>
+        <div class="result-card" id="resultCard"></div>
+        <button class="restart-btn" id="restartBtn">重新测试</button>
+    </div>
+
+    <script>
+        // 爽点类型配置
+        const pleasureTypes = [
+            { key: 'organize', name: '整理爽', color: '#667eea', 
+              desc: '对你来说，「整洁」就是最高级的治愈！把杂乱变有序的过程，能让你瞬间清空内心的烦躁，整理完的那一刻，成就感和爽感直接拉满，甚至会忍不住反复欣赏自己的“整理成果”。',
+              tips: '每日5分钟：睡前整理桌面/玄关，保持“随手整洁”；周末大整理：给衣柜/冰箱做分类，用收纳盒+标签贴让物品“各归其位”；奖励机制：整理完一个区域，给自己买一个新的收纳小物件。' },
+            { key: 'saveMoney', name: '省钱爽', color: '#f093fb', 
+              desc: '薅到羊毛、省到钱的瞬间，比发工资还让你开心！你不是抠门，是享受“用智慧花最少的钱，过有品质的生活”的成就感，每一分钱的精打细算，都能让你感受到生活的掌控感。',
+              tips: '每日薅羊毛：蹲外卖/超市的临期折扣、平台签到红包；每周记账：用APP记录消费，找出“可省的不必要开支”；月度目标：设置每月省钱额度，达成后用省下来的钱买一件小礼物奖励自己。' },
+            { key: 'create', name: '创作爽', color: '#4facfe', 
+              desc: '对你而言，创作不是任务，是情绪的出口！不管是写字、画画、拍视频还是做手工，把内心的想法变成具象的作品，那一刻的满足感，是任何事情都替代不了的爽。',
+              tips: '每日小创作：花10分钟写一句话/画一幅小画/拍一张照片；周末大创作：尝试新的创作形式（如手帐拼贴、短视频剪辑）；成果展示：把作品发在社交平台，哪怕只有自己看，也是对创作的肯定。' },
+            { key: 'freedom', name: '自由爽', color: '#00f2fe', 
+              desc: '你最爱的爽点，是「不被束缚的自由」！独自吃饭、独自旅行、独自放空，不用迁就别人的节奏，不用应付无效的社交，这种“完全属于自己”的时光，能让你快速充电，找回真实的自己。',
+              tips: '每周1天“无社交日”：关掉手机通知，做自己想做的事；每月1次独自小出行：去周边公园/咖啡馆/书店，享受独处；打造“独处角落”：在家布置一个专属小空间（如阳台、飘窗），用来放空。' },
+            { key: 'immerse', name: '沉浸爽', color: '#9b59b6', 
+              desc: '对你来说，最爽的瞬间是「全身心沉浸」在一件事里！不管是熬夜追剧、沉浸式看书，还是专注做一件小事，忘记时间、忘记烦恼，这种“心流状态”能让你感受到极致的放松。',
+              tips: '每日1小时“沉浸时间”：放下手机，专注做一件喜欢的事（追剧/看书/拼乐高）；打造“沉浸环境”：戴上耳机听白噪音，关掉外界干扰；尝试新的沉浸体验：比如沉浸式剧本杀、沉浸式画展。' },
+            { key: 'social', name: '社交爽', color: '#e74c3c', 
+              desc: '你最爽的瞬间，是和喜欢的人在一起！和朋友聚餐、和家人聊天、和陌生人愉快交流，热闹的氛围能让你感受到温暖和归属感，每一次开心的社交，都是你的“能量补给站”。',
+              tips: '每周约1次好友小聚：吃火锅/喝奶茶/逛市集；参加小众社交活动：比如手作体验课、读书会，认识同频的人；记录社交美好：拍合照、写社交日记，留存开心瞬间。' }
+        ];
+
+        // 测试题目（30题，新增10道情景类题目，每题6个选项对应6种爽点）
+        const questions = [
+            {
+                title: '1. 周末空闲时，你更想做什么？',
+                options: [
+                    '把房间里的杂物分类整理好',
+                    '蹲各大平台的优惠券薅羊毛',
+                    '写一篇笔记/拍一段日常视频',
+                    '独自去吃火锅/看电影',
+                    '熬夜追完一部收藏已久的剧',
+                    '约朋友一起去逛市集/吃火锅'
+                ]
+            },
+            {
+                title: '2. 完成哪件事会让你立刻觉得“太爽了”？',
+                options: [
+                    '把堆积的快递盒都拆解回收',
+                    '用优惠券省了50块钱',
+                    '写出一段超满意的文案',
+                    '关掉手机独处一下午',
+                    '沉浸式看完一本厚书',
+                    '和朋友聊到深夜，畅所欲言'
+                ]
+            },
+            {
+                title: '3. 收到礼物时，哪种会让你更开心？',
+                options: [
+                    '收纳箱/整理神器',
+                    '打折券/购物卡',
+                    '笔记本/绘画工具',
+                    '单人旅行套餐',
+                    '沉浸式剧本杀门票',
+                    '多人桌游套装'
+                ]
+            },
+            {
+                title: '4. 下班回家，你会先做什么来放松？',
+                options: [
+                    '把办公桌/玄关收拾干净',
+                    '核对当天的消费账单，发现超省钱',
+                    '随手画一张小画/写几句心情',
+                    '窝在沙发里不说话，放空自己',
+                    '戴上耳机听喜欢的歌，完全沉浸',
+                    '和家人分享今天的趣事'
+                ]
+            },
+            {
+                title: '5. 哪种瞬间会让你觉得“生活太美好了”？',
+                options: [
+                    '衣柜被整理得整整齐齐',
+                    '买到临期打折的爱吃零食',
+                    '剪完一段超有氛围感的视频',
+                    '凌晨在街上散步，没人打扰',
+                    '专注拼完一幅大型拼图',
+                    '和朋友一起去看演唱会，全场大合唱'
+                ]
+            },
+            {
+                title: '6. 遇到压力大时，你会通过什么方式解压？',
+                options: [
+                    '打扫房间，擦得一尘不染',
+                    '逛特价区，买一堆便宜好物',
+                    '写日记/发一条仅自己可见的动态',
+                    '去公园独自坐一下午',
+                    '沉浸式玩一款单机游戏',
+                    '找闺蜜/兄弟吐槽，一起吃顿大餐'
+                ]
+            },
+            {
+                title: '7. 你觉得最有成就感的小事是？',
+                options: [
+                    '把冰箱里的食材分类摆放',
+                    '用拼团价买到心仪的护肤品',
+                    '给朋友写一封手写的信',
+                    '临时决定去周边城市玩，说走就走',
+                    '花一下午研究出一道菜的做法',
+                    '组织朋友聚会，大家都玩得很开心'
+                ]
+            },
+            {
+                title: '8. 刷到哪种笔记会让你忍不住收藏？',
+                options: [
+                    '家居整理的万能技巧',
+                    '百元过一周的省钱攻略',
+                    '手帐/插画的创作教程',
+                    '一个人的小众旅行地推荐',
+                    '沉浸式观影/看书的攻略',
+                    '小众社交活动的报名指南'
+                ]
+            },
+            {
+                title: '9. 哪种“小幸运”会让你开心一整天？',
+                options: [
+                    '找到丢失很久的小物件，顺便整理了抽屉',
+                    '外卖凑单减了大半价格',
+                    '突发灵感写了一首小诗',
+                    '下雨天在家，没人催着出门',
+                    '发现一部超好看的纪录片，沉浸式看完',
+                    '偶遇很久没见的朋友，相谈甚欢'
+                ]
+            },
+            {
+                title: '10. 你更愿意为哪种事情花时间？',
+                options: [
+                    '给家里的物品贴标签，做收纳规划',
+                    '对比不同平台的价格，找最划算的购买方式',
+                    '研究拍照技巧，拍一组好看的照片',
+                    '坐在路边看行人，漫无目的地散步',
+                    '拼乐高/做手工，专注一下午',
+                    '策划一场朋友的生日惊喜'
+                ]
+            },
+            {
+                title: '11. 熬夜做完哪件事，你不会觉得累反而很满足？',
+                options: [
+                    '把整个房间彻底大扫除一遍',
+                    '算清楚一个月的收支，发现存了不少钱',
+                    '写完一篇长篇的读后感/影评',
+                    '熬夜看完一部超喜欢的剧，没人打扰',
+                    '沉浸式玩剧本杀到凌晨',
+                    '和朋友一起熬夜跨年/看球赛'
+                ]
+            },
+            {
+                title: '12. 哪种聚会后的状态会让你觉得“很舒服”？',
+                options: [
+                    '回家立刻把聚会带回来的东西整理好',
+                    '聚会AA制，算得明明白白没多花钱',
+                    '和朋友一起拍vlog，剪出来超好看',
+                    '聚会结束后，独自走一段路回家',
+                    '回家后沉浸式回味聚会的开心瞬间',
+                    '聚会后和朋友继续线上聊天，意犹未尽'
+                ]
+            },
+            {
+                title: '13. 看到家里哪种场景，你会觉得“治愈了”？',
+                options: [
+                    '书架上的书按类别摆得整整齐齐',
+                    '存钱罐里的硬币快满了',
+                    '书桌上放着自己画的画/写的笔记',
+                    '阳台的椅子上放着抱枕，能独自晒太阳',
+                    '投影仪放着喜欢的电影，氛围感拉满',
+                    '客厅里摆着朋友送的礼物，满是回忆'
+                ]
+            },
+            {
+                title: '14. 哪种网购体验会让你觉得“值了”？',
+                options: [
+                    '买的收纳盒完美适配柜子尺寸',
+                    '网购返现+优惠券，几乎没花钱',
+                    '买的手工材料，做出了超好看的作品',
+                    '买的单人帐篷，能去郊外独自露营',
+                    '买的沉浸式游戏，玩了一整天都不腻',
+                    '买的桌游，和朋友玩了一整晚'
+                ]
+            },
+            {
+                title: '15. 哪种小事会让你忍不住发朋友圈？',
+                options: [
+                    '整理后的房间对比图',
+                    '薅羊毛的战果截图',
+                    '自己做的手工/画的画',
+                    '独自旅行的风景照',
+                    '沉浸式看展的打卡照',
+                    '和朋友的聚会合照'
+                ]
+            },
+            {
+                title: '16. 放假时，你会主动做什么？',
+                options: [
+                    '整理手机相册，删除无用照片',
+                    '制定假期的省钱消费计划',
+                    '尝试做新的手工/烘焙，拍下来分享',
+                    '找一个安静的咖啡馆，独自待一下午',
+                    '沉浸式补完一部动漫/综艺',
+                    '约上朋友去周边城市短途旅行'
+                ]
+            },
+            {
+                title: '17. 哪种声音会让你觉得“很解压”？',
+                options: [
+                    '擦桌子的抹布摩擦声/整理纸箱的折叠声',
+                    '数钱的声音/优惠券到账的提示声',
+                    '写字的笔尖摩擦纸的声音/相机快门声',
+                    '图书馆里的翻书声/雨天的雨声',
+                    '电影里的背景音乐/游戏的音效',
+                    '朋友的笑声/聚会的喧闹声'
+                ]
+            },
+            {
+                title: '18. 哪种“小失败”会让你觉得“有点可惜”？',
+                options: [
+                    '整理计划被打断，房间又乱了',
+                    '错过优惠券有效期，多花了钱',
+                    '创作的内容被误删，没备份',
+                    '计划好的独自旅行，被突发事打断',
+                    '看到一半的电影被打断，没了沉浸感',
+                    '约好的朋友聚会，有人临时爽约'
+                ]
+            },
+            {
+                title: '19. 你希望自己的生活多一点什么？',
+                options: [
+                    '整洁有序的环境',
+                    '花更少的钱，过更好的生活',
+                    '表达自我的创作机会',
+                    '不被打扰的自由时光',
+                    '能沉浸做喜欢事的时间',
+                    '和朋友相聚的快乐时光'
+                ]
+            },
+            {
+                title: '20. 早上醒来，哪种期待会让你立刻起床？',
+                options: [
+                    '今天要把房间的衣柜彻底整理一遍',
+                    '今天超市有大促，能薅很多羊毛',
+                    '今天有灵感，要写一篇超棒的笔记',
+                    '今天要去独自打卡一家小众咖啡馆',
+                    '今天可以沉浸式玩新出的游戏',
+                    '今天要和朋友一起去吃新开的餐厅'
+                ]
+            },
+            // 新增10道情景类题目（21-30题）
+            {
+                title: '21. 工作中，完成哪件事会让你最有成就感？',
+                options: [
+                    '把混乱的工作文件分类归档，一目了然',
+                    '通过谈判拿到更低的合作报价，为公司省钱',
+                    '独立完成一个创意方案，得到领导认可',
+                    '提前完成工作，获得半天自由支配时间',
+                    '专注攻克一个难题，完全投入忘记时间',
+                    '和团队协作完成项目，一起庆祝成功'
+                ]
+            },
+            {
+                title: '22. 突发大雨，你被困在路边，哪种应对方式让你觉得“还行”？',
+                options: [
+                    '在便利店借伞时，顺便整理了包里的杂物',
+                    '用优惠券买了一把超便宜的雨伞',
+                    '拍了一段雨天街景视频，配了喜欢的文案',
+                    '找了一家安静的小店，独自喝奶茶等雨停',
+                    '戴上耳机听雨声，沉浸式发呆',
+                    '联系附近的朋友，约着一起等雨停聊天'
+                ]
+            },
+            {
+                title: '23. 收到一份超预期的奖金，你会怎么花？',
+                options: [
+                    '买一套高端收纳系统，把家里彻底整理',
+                    '囤一堆刚需用品，用折扣价买够半年',
+                    '报一个创作类课程（摄影/绘画/写作）',
+                    '安排一场说走就走的单人旅行',
+                    '买一台高性能设备，沉浸式玩游戏/看剧',
+                    '请所有好朋友吃一顿大餐，分享快乐'
+                ]
+            },
+            {
+                title: '24. 朋友来你家做客，哪种反馈会让你最开心？',
+                options: [
+                    '“你家也太整洁了吧，每件东西都有位置”',
+                    '“你买的东西都好划算，能不能分享链接”',
+                    '“你亲手做的甜品/装饰也太有创意了”',
+                    '“在你家待着好放松，完全不用拘束”',
+                    '“和你一起看的这部电影，沉浸感绝了”',
+                    '“和你聊天太开心了，下次还要来”'
+                ]
+            },
+            {
+                title: '25. 排队时，你会用哪种方式打发时间？',
+                options: [
+                    '整理手机桌面，删除无用APP和照片',
+                    '刷优惠券APP，看看有没有可薅的羊毛',
+                    '在备忘录里写一段随想/画一个小涂鸦',
+                    '戴上耳机，独自听音乐/播客，不被打扰',
+                    '专注观察周围的人或事，沉浸在自己的世界',
+                    '和旁边的人闲聊，分享日常趣事'
+                ]
+            },
+            {
+                title: '26. 家里的物品坏了，哪种解决方式让你觉得“爽”？',
+                options: [
+                    '修好后，把工具和零件整理得整整齐齐',
+                    '自己动手修复，省下了维修费用',
+                    '用创意方式改造，让旧物品焕发新生',
+                    '利用维修的时间，享受独处的专注时光',
+                    '沉浸式研究维修教程，成功解决问题',
+                    '找朋友一起帮忙，边修边聊天'
+                ]
+            },
+            {
+                title: '27. 参加一场活动，哪种环节会让你觉得“没白来”？',
+                options: [
+                    '活动结束后，和主办方一起整理场地',
+                    '活动现场有大额优惠券/抽奖福利',
+                    '有创作分享环节，get到新的灵感',
+                    '活动间隙有自由活动时间，可独自逛展区',
+                    '有沉浸式体验环节（如VR/互动艺术）',
+                    '认识了很多志同道合的朋友，相谈甚欢'
+                ]
+            },
+            {
+                title: '28. 周末做家务，哪种安排会让你觉得“不枯燥”？',
+                options: [
+                    '按区域规划，一步步把家里收拾干净',
+                    '边做家务边听省钱攻略播客，学习技巧',
+                    '做家务时拍vlog，记录“治愈系家务”',
+                    '做完家务后，奖励自己独自去看电影',
+                    '沉浸式做家务，听着喜欢的音乐不被打扰',
+                    '约朋友一起做家务，做完后一起聚餐'
+                ]
+            },
+            {
+                title: '29. 看到别人分享的生活，哪种内容会让你觉得“向往”？',
+                options: [
+                    '一尘不染、收纳得当的家居环境',
+                    '用最少的钱过出高品质生活的攻略',
+                    '通过创作实现自我价值的日常',
+                    '随时可以独自出发的旅行vlog',
+                    '能沉浸在爱好里的专注瞬间',
+                    '和朋友一起探索世界的快乐时光'
+                ]
+            },
+            {
+                title: '30. 哪种“小确幸”会让你觉得生活值得？',
+                options: [
+                    '整理完书桌，阳光洒在整齐的书本上',
+                    '买咖啡时用积分兑换，免费得到一杯',
+                    '随手画的小画被陌生人点赞鼓励',
+                    '在公园的长椅上，独自晒了一下午太阳',
+                    '窝在沙发里，沉浸式看完一部高分电影',
+                    '和家人一起做饭、聊天，其乐融融'
+                ]
+            }
+        ];
+
+        // 页面元素
+        const startPage = document.getElementById('startPage');
+        const testPage = document.getElementById('testPage');
+        const resultPage = document.getElementById('resultPage');
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const progressBar = document.getElementById('progressBar');
+        const questionTitle = document.getElementById('questionTitle');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const scoreList = document.getElementById('scoreList');
+        const resultCard = document.getElementById('resultCard');
+        const resultChart = document.getElementById('resultChart');
+        const chartCenterText = document.getElementById('chartCenterText');
+        const chartCenterScore = document.getElementById('chartCenterScore');
+
+        // 全局变量
+        let currentQ = 0;
+        let scores = { organize: 0, saveMoney: 0, create: 0, freedom: 0, immerse: 0, social: 0 };
+        let chartInstance = null;
+
+        // 开始测试
+        startBtn.addEventListener('click', () => {
+            startPage.classList.remove('active');
+            testPage.classList.add('active');
+            currentQ = 0;
+            scores = { organize: 0, saveMoney: 0, create: 0, freedom: 0, immerse: 0, social: 0 };
+            renderQuestion();
+        });
+
+        // 重新测试
+        restartBtn.addEventListener('click', () => {
+            resultPage.classList.remove('active');
+            startPage.classList.add('active');
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+        });
+
+        // 渲染题目
+        function renderQuestion() {
+            const q = questions[currentQ];
+            if (!q) return;
+
+            // 更新题目和选项
+            questionTitle.textContent = q.title;
+            optionsContainer.innerHTML = '';
+            q.options.forEach((opt, index) => {
+                const optionEl = document.createElement('div');
+                optionEl.className = 'option';
+                optionEl.textContent = opt;
+                optionEl.dataset.type = pleasureTypes[index].key;
+                optionEl.addEventListener('click', selectOption);
+                optionsContainer.appendChild(optionEl);
+            });
+
+            // 更新进度条
+            const progress = ((currentQ + 1) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // 选择选项
+        function selectOption(e) {
+            const type = e.target.dataset.type;
+            scores[type] += 1;
+
+            if (currentQ === questions.length - 1) {
+                // 最后一题，展示结果
+                testPage.classList.remove('active');
+                resultPage.classList.add('active');
+                renderResult();
+            } else {
+                // 下一题
+                currentQ++;
+                renderQuestion();
+            }
+        }
+
+        // 渲染结果
+        function renderResult() {
+            // 计算总分和占比
+            const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
+            const scorePercent = {};
+            Object.keys(scores).forEach(key => {
+                scorePercent[key] = (scores[key] / totalScore) * 100;
+            });
+
+            // 找到最高爽点
+            let maxType = 'organize';
+            let maxScore = 0;
+            Object.keys(scores).forEach(key => {
+                if (scores[key] > maxScore) {
+                    maxScore = scores[key];
+                    maxType = key;
+                }
+            });
+            const maxPleasure = pleasureTypes.find(item => item.key === maxType);
+
+            // 更新圆环中心文本
+            chartCenterText.querySelector('.chart-center-title').textContent = maxPleasure.name;
+            chartCenterScore.textContent = maxScore;
+
+            // 渲染分数列表
+            scoreList.innerHTML = '';
+            pleasureTypes.forEach(type => {
+                const percent = scorePercent[type.key];
+                const scoreItem = document.createElement('div');
+                scoreItem.className = 'score-item';
+                scoreItem.innerHTML = `
+                    <div class="score-label">${type.name}</div>
+                    <div class="score-bar-wrap">
+                        <div class="score-bar" style="width: 0%; background: ${type.color}"></div>
+                    </div>
+                    <div class="score-value">${scores[type.key]}</div>
+                `;
+                scoreList.appendChild(scoreItem);
+
+                // 动画效果
+                setTimeout(() => {
+                    scoreItem.querySelector('.score-bar').style.width = `${percent}%`;
+                }, 200);
+            });
+
+            // 渲染结果卡片
+            resultCard.innerHTML = `
+                <h3 class="result-title">你的核心爽点：${maxPleasure.name}</h3>
+                <p class="result-desc">${maxPleasure.desc}</p>
+                <div class="result-tips"><strong>快乐小技巧：</strong>${maxPleasure.tips}</div>
+            `;
+
+            // 渲染环形图
+            const chartData = {
+                labels: pleasureTypes.map(t => t.name),
+                datasets: [{
+                    data: Object.values(scores),
+                    backgroundColor: pleasureTypes.map(t => t.color),
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            };
+
+            chartInstance = new Chart(resultChart, {
+                type: 'doughnut',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    return `${label}：${value}分`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%',
+                    animation: {
+                        animateRotate: true,
+                        animateScale: true,
+                        duration: 1500
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
